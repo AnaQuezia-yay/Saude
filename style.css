@@ -1,0 +1,81 @@
+/* Configurações globais para centralizar a visualização mobile na tela */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Simulação da tela do celular */
+.mobile-screen {
+  width: 360px;
+  height: 640px;
+  background-color: #d8fcd0; /* Verde claro do fundo */
+  border: 1px solid #7a7a7a;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+/* Formulário e elementos internos */
+.app-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.title-label {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333333;
+  text-align: center;
+}
+
+.text-input {
+  width: 90%;
+  padding: 10px 12px;
+  background-color: #cde4f7; /* Azul claro da caixa de texto */
+  border: 1px solid #666666;
+  border-radius: 4px;
+  font-size: 1rem;
+  outline: none;
+}
+
+.text-input:focus {
+  border-color: #333333;
+}
+
+/* Botão Confirmar arredondado */
+.btn-confirm {
+  width: 65%;
+  padding: 12px;
+  background-color: #6e8471; /* Cinza esverdeado do botão */
+  color: #ffffff;
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-confirm:hover {
+  background-color: #5c705f;
+}
+
+.btn-confirm:active {
+  transform: scale(0.98);
+}

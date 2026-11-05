@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Protótipo Mobile - Tela 1</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Simulation Container -->
+  <main class="mobile-screen">
+    <form class="app-form" id="screenForm">
+      
+      <!-- Texto superior -->
+      <label for="userInput" class="title-label">
+        Digite sua localização:
+      </label>
+
+      <!-- Caixa para o usuário escrever -->
+      <input 
+        type="text" 
+        id="userInput" 
+        class="text-input" 
+        placeholder="Escreva aqui..." 
+        required
+      />
+
+      <!-- Botão Confirmar -->
+      <button type="submit" class="btn-confirm">
+        Confirmar
+      </button>
+
+    </form>
+  </main>
+
+  <!-- Lógica de navegação/confirmação -->
+  <script>
+    const form = document.getElementById('screenForm');
+    const inputField = document.getElementById('userInput');
+
+    form.addEventListener('submit', function(event) {
+      event.preventDefault(); // Impede o recarregamento da página
+
+      const valorDigitado = inputField.value.trim();
+
+      if (valorDigitado !== "") {
+        // Exemplo: salva o dado digitado temporariamente no navegador
+        sessionStorage.setItem('dadosTela1', valorDigitado);
+
+        // Ação para ir para a próxima tela (substitua pelo nome do arquivo da 2ª tela)
+        // window.location.href = "tela2.html";
+        
+        alert(`Sucesso! Valor inserido: "${valorDigitado}". Redirecionando para a próxima tela...`);
+      }
+    });
+  </script>
+
+</body>
+</html>
