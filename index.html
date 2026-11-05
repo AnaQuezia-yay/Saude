@@ -3,58 +3,174 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Protótipo Mobile - Tela 1</title>
+  <title>Protótipo de App Mobile</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- CSS Customizado -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="bg-slate-900 min-h-screen flex items-center justify-center p-0 md:p-4 selection:bg-emerald-200">
 
-  <!-- Simulation Container -->
-  <main class="mobile-screen">
-    <form class="app-form" id="screenForm">
-      
-      <!-- Texto superior -->
-      <label for="userInput" class="title-label">
-        Digite sua localização:
-      </label>
+  <!-- Simulação de Moldura de Celular no Desktop / Fullscreen no Mobile -->
+  <div class="w-full sm:max-w-[390px] h-screen sm:h-[844px] bg-[#dcfce7] sm:rounded-[48px] shadow-2xl overflow-hidden flex flex-col relative border-0 sm:border-[8px] sm:border-slate-800">
+    
+    <!-- Barra de Status simulada -->
+    <div class="w-full px-6 pt-3 pb-2 flex justify-between items-center text-xs font-semibold text-emerald-900 opacity-60 z-20">
+      <span>9:41</span>
+      <div class="flex items-center gap-1.5">
+        <i data-lucide="signal" class="w-3.5 h-3.5"></i>
+        <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+        <i data-lucide="battery" class="w-4 h-4"></i>
+      </div>
+    </div>
 
-      <!-- Caixa para o usuário escrever -->
-      <input 
-        type="text" 
-        id="userInput" 
-        class="text-input" 
-        placeholder="Escreva aqui..." 
-        required
-      />
+    <!-- Conteúdo Dinâmico do App -->
+    <main class="flex-1 relative overflow-hidden flex flex-col">
 
-      <!-- Botão Confirmar -->
-      <button type="submit" class="btn-confirm">
-        Confirmar
-      </button>
-
-    </form>
-  </main>
-
-  <!-- Lógica de navegação/confirmação -->
-  <script>
-    const form = document.getElementById('screenForm');
-    const inputField = document.getElementById('userInput');
-
-    form.addEventListener('submit', function(event) {
-      event.preventDefault(); // Impede o recarregamento da página
-
-      const valorDigitado = inputField.value.trim();
-
-      if (valorDigitado !== "") {
-        // Exemplo: salva o dado digitado temporariamente no navegador
-        sessionStorage.setItem('dadosTela1', valorDigitado);
-
-        // Ação para ir para a próxima tela (substitua pelo nome do arquivo da 2ª tela)
-        // window.location.href = "tela2.html";
+      <!-- ================= TELA 1: Localização ================= -->
+      <section id="screen-1" class="absolute inset-0 p-6 flex flex-col justify-center items-center text-center screen-fade opacity-100 z-10">
         
-        alert(`Sucesso! Valor inserido: "${valorDigitado}". Redirecionando para a próxima tela...`);
-      }
-    });
-  </script>
+        <div class="w-full max-w-[300px] flex flex-col items-center gap-6">
+          
+          <!-- Título / Texto Superior -->
+          <div class="space-y-2">
+            <h1 class="text-2xl font-bold text-emerald-950 tracking-tight">
+              Insira a sua Localização
+            </h1>
+            <p class="text-sm text-emerald-700">
+              Digite a sua cidade ou endereço para continuar
+            </p>
+          </div>
 
+          <!-- Caixas de Entrada (Input) -->
+          <div class="w-full relative">
+            <input 
+              type="text" 
+              id="user-input"
+              placeholder="Digite aqui..." 
+              class="w-full px-4 py-3 bg-[#bfdbfe]/40 border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white/90 transition-all text-center shadow-inner font-medium"
+              onkeyup="checkInput()"
+            />
+            <p id="error-msg" class="text-xs text-red-500 mt-1 hidden">Por favor, preencha o campo acima.</p>
+          </div>
+
+          <!-- Botão Confirmar -->
+          <button 
+            onclick="goToScreen2()"
+            class="w-full py-3.5 px-6 bg-[#6b8068] hover:bg-[#596c56] active:scale-95 text-white font-medium rounded-full shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>Confirmar</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+
+        </div>
+
+      </section>
+
+      <!-- ================= TELA 2: Sucesso / Próxima Tela ================= -->
+      <section id="screen-2" class="absolute inset-0 p-6 flex flex-col justify-center items-center text-center screen-fade opacity-0 pointer-events-none z-0">
+        
+        <div class="w-full max-w-[300px] flex flex-col items-center gap-6">
+          
+          <!-- Ícone de Sucesso -->
+          <div class="w-16 h-16 bg-emerald-200 rounded-full flex items-center justify-center text-emerald-800 shadow-sm">
+            <i data-lucide="check-circle-2" class="w-10 h-10"></i>
+          </div>
+
+          <div class="space-y-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Tela 2 • Confirmação</span>
+            <h2 class="text-2xl font-bold text-emerald-950">Dados Recebidos!</h2>
+            <p class="text-sm text-emerald-700">Você confirmou a seguinte informação:</p>
+          </div>
+
+          <!-- Card exibindo o valor digitado -->
+          <div class="w-full p-4 bg-white/70 backdrop-blur-sm border border-emerald-200 rounded-2xl shadow-sm">
+            <span class="text-xs text-slate-400 block mb-1">Localização informada:</span>
+            <p id="display-value" class="text-lg font-semibold text-slate-800 break-words">--</p>
+          </div>
+
+          <!-- Botão Voltar -->
+          <button 
+            onclick="goToScreen1()"
+            class="w-full py-3.5 px-6 bg-[#6b8068] hover:bg-[#596c56] active:scale-95 text-white font-medium rounded-full shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            <span>Voltar</span>
+          </button>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Indicador de Navegação (Home Bar do Celular) -->
+    <div class="w-full pb-2 flex justify-center z-20">
+      <div class="w-32 h-1 bg-slate-800/20 rounded-full"></div>
+    </div>
+
+  </div>
+
+  <script>
+    // Inicializar Ícones do Lucide
+    lucide.createIcons();
+
+    const screen1 = document.getElementById('screen-1');
+    const screen2 = document.getElementById('screen-2');
+    const userInput = document.getElementById('user-input');
+    const displayValue = document.getElementById('display-value');
+    const errorMsg = document.getElementById('error-msg');
+
+    // Navega para a Tela 2
+    function goToScreen2() {
+      const val = userInput.value.trim();
+      
+      if (!val) {
+        errorMsg.classList.remove('hidden');
+        userInput.classList.add('border-red-400', 'bg-red-50/50');
+        return;
+      }
+
+      // Esconde mensagem de erro
+      errorMsg.classList.add('hidden');
+      userInput.classList.remove('border-red-400', 'bg-red-50/50');
+
+      // Atualiza o texto na Tela 2
+      displayValue.textContent = val;
+
+      // Animação de Troca de Tela
+      screen1.classList.add('opacity-0', 'pointer-events-none');
+      screen1.classList.remove('opacity-100');
+
+      setTimeout(() => {
+        screen2.classList.remove('opacity-0', 'pointer-events-none');
+        screen2.classList.add('opacity-100');
+      }, 150);
+    }
+
+    // Volta para a Tela 1
+    function goToScreen1() {
+      screen2.classList.add('opacity-0', 'pointer-events-none');
+      screen2.classList.remove('opacity-100');
+
+      setTimeout(() => {
+        screen1.classList.remove('opacity-0', 'pointer-events-none');
+        screen1.classList.add('opacity-100');
+      }, 150);
+    }
+
+    // Limpa erro ao digitar
+    function checkInput() {
+      if (userInput.value.trim()) {
+        errorMsg.classList.add('hidden');
+        userInput.classList.remove('border-red-400', 'bg-red-50/50');
+      }
+    }
+  </script>
 </body>
 </html>
