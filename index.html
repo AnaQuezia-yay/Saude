@@ -34,10 +34,7 @@
 
       <!-- ================= TELA 1: Localização ================= -->
       <section id="screen-1" class="absolute inset-0 p-6 flex flex-col justify-center items-center text-center screen-fade opacity-100 z-10">
-        
         <div class="w-full max-w-[300px] flex flex-col items-center gap-6">
-          
-          <!-- Título / Texto Superior -->
           <div class="space-y-2">
             <h1 class="text-2xl font-bold text-emerald-950 tracking-tight">
               Insira a sua Localização
@@ -47,7 +44,6 @@
             </p>
           </div>
 
-          <!-- Caixas de Entrada (Input) -->
           <div class="w-full relative">
             <input 
               type="text" 
@@ -59,52 +55,253 @@
             <p id="error-msg" class="text-xs text-red-500 mt-1 hidden">Por favor, preencha o campo acima.</p>
           </div>
 
-          <!-- Botão Confirmar -->
           <button 
-            onclick="goToScreen2()"
+            onclick="switchScreen('screen-2')"
             class="w-full py-3.5 px-6 bg-[#6b8068] hover:bg-[#596c56] active:scale-95 text-white font-medium rounded-full shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>Confirmar</span>
             <i data-lucide="arrow-right" class="w-4 h-4"></i>
           </button>
-
         </div>
-
       </section>
 
-      <!-- ================= TELA 2: Sucesso / Próxima Tela ================= -->
+      <!-- ================= TELA 2: Selecione o botão ================= -->
       <section id="screen-2" class="absolute inset-0 p-6 flex flex-col justify-center items-center text-center screen-fade opacity-0 pointer-events-none z-0">
-        
         <div class="w-full max-w-[300px] flex flex-col items-center gap-6">
           
-          <!-- Ícone de Sucesso -->
-          <div class="w-16 h-16 bg-emerald-200 rounded-full flex items-center justify-center text-emerald-800 shadow-sm">
-            <i data-lucide="check-circle-2" class="w-10 h-10"></i>
+          <div class="space-y-2 w-full text-left">
+            <h2 class="text-2xl font-bold text-emerald-950">Selecione o botão</h2>
           </div>
 
-          <div class="space-y-2">
-            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Tela 2 • Confirmação</span>
-            <h2 class="text-2xl font-bold text-emerald-950">Dados Recebidos!</h2>
-            <p class="text-sm text-emerald-700">Você confirmou a seguinte informação:</p>
+          <div class="w-full flex flex-col gap-4">
+            <button 
+              onclick="switchScreen('screen-3')"
+              class="w-full py-4 bg-[#6b8068] hover:bg-[#596c56] active:scale-95 text-white font-medium rounded-full shadow-md transition-all duration-200 cursor-pointer"
+            ></button>
+
+            <button 
+              onclick="switchScreen('screen-3')"
+              class="w-full py-4 bg-[#6b8068] hover:bg-[#596c56] active:scale-95 text-white font-medium rounded-full shadow-md transition-all duration-200 cursor-pointer"
+            ></button>
+
+            <button 
+              onclick="switchScreen('screen-4')"
+              class="w-full py-4 bg-[#ff6b6b] hover:bg-[#fa5252] active:scale-95 text-white font-medium rounded-full shadow-md transition-all duration-200 cursor-pointer"
+            ></button>
           </div>
 
-          <!-- Card exibindo o valor digitado -->
-          <div class="w-full p-4 bg-white/70 backdrop-blur-sm border border-emerald-200 rounded-2xl shadow-sm">
-            <span class="text-xs text-slate-400 block mb-1">Localização informada:</span>
-            <p id="display-value" class="text-lg font-semibold text-slate-800 break-words">--</p>
-          </div>
-
-          <!-- Botão Voltar -->
           <button 
-            onclick="goToScreen1()"
-            class="w-full py-3.5 px-6 bg-[#6b8068] hover:bg-[#596c56] active:scale-95 text-white font-medium rounded-full shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+            onclick="switchScreen('screen-1')"
+            class="text-xs text-emerald-800 underline mt-4 cursor-pointer"
           >
-            <i data-lucide="arrow-left" class="w-4 h-4"></i>
-            <span>Voltar</span>
+            Voltar para o início
           </button>
-
         </div>
 
+        <button class="absolute bottom-6 right-6 w-14 h-14 bg-[#0ea5e9] hover:bg-[#0284c7] rounded-full shadow-lg flex items-center justify-center text-white cursor-pointer active:scale-95 transition-transform">
+          <i data-lucide="plus" class="w-6 h-6"></i>
+        </button>
+      </section>
+
+      <!-- ================= TELA 3: Mais texto ================= -->
+      <section id="screen-3" class="absolute inset-0 p-6 flex flex-col justify-center items-center text-center screen-fade opacity-0 pointer-events-none z-0">
+        <div class="w-full max-w-[300px] flex flex-col items-center gap-6">
+          
+          <div class="space-y-2 w-full text-left">
+            <h2 class="text-2xl font-bold text-emerald-950">Mais texto</h2>[cite: 3]
+          </div>
+
+          <div class="w-full flex flex-col gap-4">
+            <button 
+              onclick="switchScreen('screen-4')"
+              class="w-full py-4 bg-[#6b8068] hover:bg-[#596c56] active:scale-95 text-white font-medium rounded-full shadow-md transition-all duration-200 cursor-pointer"
+            ></button>
+
+            <button 
+              onclick="switchScreen('screen-4')"
+              class="w-full py-4 bg-[#6b8068] hover:bg-[#596c56] active:scale-95 text-white font-medium rounded-full shadow-md transition-all duration-200 cursor-pointer"
+            ></button>
+
+            <button 
+              onclick="switchScreen('screen-4')"
+              class="w-full py-4 bg-[#ff6b6b] hover:bg-[#fa5252] active:scale-95 text-white font-medium rounded-full shadow-md transition-all duration-200 cursor-pointer"
+            ></button>
+          </div>
+
+          <button 
+            onclick="switchScreen('screen-2')"
+            class="text-xs text-emerald-800 underline mt-4 cursor-pointer"
+          >
+            Voltar
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= TELA 4: texto outra vez ================= -->
+      <section id="screen-4" class="absolute inset-0 p-6 flex flex-col justify-center items-center text-center screen-fade opacity-0 pointer-events-none z-0">
+        <div class="w-full max-w-[300px] flex flex-col items-center gap-6">
+          
+          <div class="space-y-2 w-full text-left">
+            <h2 class="text-2xl font-bold text-emerald-950">texto outra vez</h2>[cite: 4]
+          </div>
+
+          <div class="w-full flex flex-col gap-4">
+            <button 
+              onclick="switchScreen('screen-5')"
+              class="w-full py-3.5 px-6 bg-[#6b8068] hover:bg-[#596c56] active:scale-95 text-white font-semibold rounded-full shadow-md transition-all duration-200 cursor-pointer text-lg"
+            >
+              Sim
+            </button>[cite: 4]
+
+            <button 
+              onclick="switchScreen('screen-5')"
+              class="w-full py-3.5 px-6 bg-[#6b8068] hover:bg-[#596c56] active:scale-95 text-white font-semibold rounded-full shadow-md transition-all duration-200 cursor-pointer text-lg"
+            >
+              Não
+            </button>[cite: 4]
+          </div>
+
+          <button 
+            onclick="switchScreen('screen-2')"
+            class="text-xs text-emerald-800 underline mt-4 cursor-pointer"
+          >
+            Voltar ao menu
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= TELA 5: Recomendações ================= -->
+      <section id="screen-5" class="absolute inset-0 p-6 flex flex-col justify-center items-center text-left screen-fade opacity-0 pointer-events-none z-0">
+        <div class="w-full max-w-[320px] flex flex-col items-start gap-5">
+          
+          <h2 class="text-2xl font-bold text-emerald-950">Recomendações:</h2>[cite: 5]
+
+          <div class="w-full flex flex-col gap-4">
+            <!-- Card 1: Opção Equilibrada -->
+            <div 
+              onclick="selectRoute('Opção Equilibrada: Hospital Central', '3.5 km • 12 min')"
+              class="w-full p-4 bg-[#a3f3a0] hover:bg-[#91e78e] active:scale-98 rounded-lg shadow-md transition-all duration-200 cursor-pointer border border-emerald-300"
+            >
+              <p class="text-sm font-medium text-emerald-950 leading-snug">
+                Opção Equilibrada: Hospital [...], no endereço [...]
+              </p>[cite: 5]
+            </div>
+
+            <!-- Card 2: Mais próximo -->
+            <div 
+              onclick="selectRoute('Mais Próximo: Hospital São Lucas', '1.2 km • 5 min')"
+              class="w-full p-4 bg-[#a3f3a0] hover:bg-[#91e78e] active:scale-98 rounded-lg shadow-md transition-all duration-200 cursor-pointer border border-emerald-300"
+            >
+              <p class="text-sm font-medium text-emerald-950 leading-snug">
+                Mais próximo: Hospital [...], no endereço [...]
+              </p>[cite: 5]
+            </div>
+
+            <!-- Card 3: Menor espera -->
+            <div 
+              onclick="selectRoute('Menor Espera: Hospital Unimed', '4.8 km • 18 min')"
+              class="w-full p-4 bg-[#a3f3a0] hover:bg-[#91e78e] active:scale-98 rounded-lg shadow-md transition-all duration-200 cursor-pointer border border-emerald-300"
+            >
+              <p class="text-sm font-medium text-emerald-950 leading-snug">
+                Menor espera: Hospital [...], no endereço [...]
+              </p>[cite: 5]
+            </div>
+          </div>
+
+          <button 
+            onclick="switchScreen('screen-1')"
+            class="self-center text-xs text-emerald-800 underline mt-4 cursor-pointer"
+          >
+            Reiniciar atendimento
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= TELA 6: Rota ================= -->
+      <section id="screen-6" class="absolute inset-0 p-6 flex flex-col justify-center items-center text-left screen-fade opacity-0 pointer-events-none z-0">
+        <div class="w-full max-w-[320px] flex flex-col items-start gap-4">
+          
+          <!-- Título da Rota -->
+          <div>
+            <h2 class="text-2xl font-bold text-emerald-950">Rota:</h2>[cite: 6]
+            <p id="selected-hospital-title" class="text-xs font-semibold text-emerald-800 mt-1">Carregando destino...</p>
+          </div>
+
+          <!-- Container do Mapa -->
+          <div class="w-full bg-[#a3f3a0] p-4 rounded-xl shadow-md border border-emerald-300 flex flex-col gap-3">
+            
+            <!-- Canvas do Mapa simulado em SVG (Fidelidade visual da imagem) -->
+            <div class="w-full h-[260px] bg-[#e5e7eb] rounded-lg overflow-hidden relative shadow-inner border border-slate-300">
+              <svg class="w-full h-full" viewBox="0 0 300 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+                
+                <!-- Blocos e Ruas de fundo -->
+                <rect width="300" height="260" fill="#e2e8f0" />
+                
+                <!-- Áreas Verdes (Parques) -->
+                <polygon points="10,10 80,10 60,60 10,40" fill="#86efac" />
+                <polygon points="140,20 200,10 180,60 120,40" fill="#86efac" />
+                <polygon points="240,10 290,10 280,50 220,40" fill="#86efac" />
+                <polygon points="80,140 120,130 110,170 70,180" fill="#86efac" />
+                <polygon points="185,100 240,80 230,130 175,140" fill="#86efac" />
+                <polygon points="180,160 250,150 230,210 170,200" fill="#86efac" />
+
+                <!-- Canal / Rio (Faixa Azul) -->
+                <polygon points="0,70 50,75 30,110 0,105" fill="#60a5fa" />
+                <polygon points="230,120 300,150 300,200 220,150" fill="#60a5fa" />
+
+                <!-- Malha Viária (Linhas Brancas das Ruas) -->
+                <path d="M 0 115 L 140 115 L 240 180 L 300 200" stroke="#ffffff" stroke-width="14" />
+                <path d="M 40 0 L 40 260" stroke="#ffffff" stroke-width="12" />
+                <path d="M 120 0 L 120 260" stroke="#ffffff" stroke-width="12" />
+                <path d="M 260 0 L 260 260" stroke="#ffffff" stroke-width="12" />
+                <path d="M 0 170 L 300 170" stroke="#ffffff" stroke-width="10" />
+
+                <!-- Linha da Rota (Laranja) -->
+                <path 
+                  id="route-path" 
+                  d="M 25 145 L 40 145 L 40 155 L 90 165 L 150 120 L 230 135 L 260 105" 
+                  stroke="#f97316" 
+                  stroke-width="4" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round"
+                />
+
+                <!-- Ponto Inicial da Rota -->
+                <circle cx="25" cy="145" r="4" fill="#ea580c" />
+
+                <!-- Marcador de Destino (Pin Laranja) -->
+                <g transform="translate(245, 80)">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#ea580c"/>
+                </g>
+
+              </svg>
+            </div>
+
+            <!-- Informações adicionais da Rota escolhida -->
+            <div class="flex justify-between items-center px-1">
+              <span id="route-details" class="text-xs font-bold text-emerald-950">Calculando trajeto...</span>
+              <span class="text-[10px] font-semibold bg-emerald-700 text-white px-2 py-0.5 rounded-full">GPS Ativo</span>
+            </div>
+
+          </div>
+
+          <!-- Botões de Ação na Tela de Rota -->
+          <div class="w-full flex gap-3 mt-2">
+            <button 
+              onclick="switchScreen('screen-5')"
+              class="flex-1 py-3 bg-[#6b8068] hover:bg-[#596c56] active:scale-95 text-white font-medium rounded-full shadow-md text-xs cursor-pointer text-center"
+            >
+              Trocar Opção
+            </button>
+            <button 
+              onclick="switchScreen('screen-1')"
+              class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-medium rounded-full shadow-md text-xs cursor-pointer text-center"
+            >
+              Concluir
+            </button>
+          </div>
+
+        </div>
       </section>
 
     </main>
@@ -117,54 +314,47 @@
   </div>
 
   <script>
-    // Inicializar Ícones do Lucide
     lucide.createIcons();
 
-    const screen1 = document.getElementById('screen-1');
-    const screen2 = document.getElementById('screen-2');
     const userInput = document.getElementById('user-input');
-    const displayValue = document.getElementById('display-value');
     const errorMsg = document.getElementById('error-msg');
+    const selectedHospitalTitle = document.getElementById('selected-hospital-title');
+    const routeDetails = document.getElementById('route-details');
 
-    // Navega para a Tela 2
-    function goToScreen2() {
-      const val = userInput.value.trim();
-      
-      if (!val) {
-        errorMsg.classList.remove('hidden');
-        userInput.classList.add('border-red-400', 'bg-red-50/50');
-        return;
+    function switchScreen(targetScreenId) {
+      if (targetScreenId === 'screen-2') {
+        const val = userInput.value.trim();
+        if (!val) {
+          errorMsg.classList.remove('hidden');
+          userInput.classList.add('border-red-400', 'bg-red-50/50');
+          return;
+        }
+        errorMsg.classList.add('hidden');
+        userInput.classList.remove('border-red-400', 'bg-red-50/50');
       }
 
-      // Esconde mensagem de erro
-      errorMsg.classList.add('hidden');
-      userInput.classList.remove('border-red-400', 'bg-red-50/50');
+      const screens = document.querySelectorAll('main > section');
+      screens.forEach(screen => {
+        screen.classList.add('opacity-0', 'pointer-events-none');
+        screen.classList.remove('opacity-100', 'z-10');
+      });
 
-      // Atualiza o texto na Tela 2
-      displayValue.textContent = val;
-
-      // Animação de Troca de Tela
-      screen1.classList.add('opacity-0', 'pointer-events-none');
-      screen1.classList.remove('opacity-100');
-
-      setTimeout(() => {
-        screen2.classList.remove('opacity-0', 'pointer-events-none');
-        screen2.classList.add('opacity-100');
-      }, 150);
+      const target = document.getElementById(targetScreenId);
+      if (target) {
+        setTimeout(() => {
+          target.classList.remove('opacity-0', 'pointer-events-none');
+          target.classList.add('opacity-100', 'z-10');
+        }, 150);
+      }
     }
 
-    // Volta para a Tela 1
-    function goToScreen1() {
-      screen2.classList.add('opacity-0', 'pointer-events-none');
-      screen2.classList.remove('opacity-100');
-
-      setTimeout(() => {
-        screen1.classList.remove('opacity-0', 'pointer-events-none');
-        screen1.classList.add('opacity-100');
-      }, 150);
+    // Função disparada ao selecionar um card da Tela 5
+    function selectRoute(hospitalName, distanceInfo) {
+      selectedHospitalTitle.textContent = hospitalName;
+      routeDetails.textContent = distanceInfo;
+      switchScreen('screen-6');
     }
 
-    // Limpa erro ao digitar
     function checkInput() {
       if (userInput.value.trim()) {
         errorMsg.classList.add('hidden');
