@@ -65,12 +65,12 @@
         </div>
       </section>
 
-      <!-- ================= TELA 2: Selecione o botão ================= -->
+      <!-- ================= TELA 2: Sintomas (Com o Botão do Robô) ================= -->
       <section id="screen-2" class="absolute inset-0 p-6 flex flex-col justify-center items-center text-center screen-fade opacity-0 pointer-events-none z-0">
         <div class="w-full max-w-[300px] flex flex-col items-center gap-6">
           
           <div class="space-y-2 w-full text-left">
-            <h2 class="text-2xl font-bold text-emerald-950">Selecione a classificação dos sintomas.</h2>
+            <h2 class="text-2xl font-bold text-emerald-950">Selecione o botão</h2>
           </div>
 
           <div class="w-full flex flex-col gap-4">
@@ -78,22 +78,22 @@
               onclick="switchScreen('screen-3')"
               class="w-full py-4 bg-[#6b8068] hover:bg-[#596c56] active:scale-95 text-white font-medium rounded-full shadow-md transition-all duration-200 cursor-pointer"
             >
-            <span>Sintomas Leves</span>
-          </button>
+              <span>Sintomas Leves</span>
+            </button>
 
             <button 
               onclick="switchScreen('screen-3')"
               class="w-full py-4 bg-[#6b8068] hover:bg-[#596c56] active:scale-95 text-white font-medium rounded-full shadow-md transition-all duration-200 cursor-pointer"
             >
-            <span>Sintomas Moderados</span>
-          </button>
+              <span>Sintomas Moderados</span>
+            </button>
 
             <button 
               onclick="switchScreen('screen-4')"
               class="w-full py-4 bg-[#ff6b6b] hover:bg-[#fa5252] active:scale-95 text-white font-medium rounded-full shadow-md transition-all duration-200 cursor-pointer"
             >
-            <span>Situação Grave</span>
-          </button>
+              <span>Situação Grave</span>
+            </button>
           </div>
 
           <button 
@@ -104,8 +104,13 @@
           </button>
         </div>
 
-        <button class="absolute bottom-6 right-6 w-14 h-14 bg-[#0ea5e9] hover:bg-[#0284c7] rounded-full shadow-lg flex items-center justify-center text-white cursor-pointer active:scale-95 transition-transform">
-          <i data-lucide="plus" class="w-6 h-6"></i>
+        <!-- Botão Flutuante do Robô (Leva para a Tela do Chatbot) -->
+        <button 
+          onclick="switchScreen('screen-chatbot')"
+          class="absolute bottom-6 right-6 w-14 h-14 bg-[#0ea5e9] hover:bg-[#0284c7] rounded-full shadow-lg flex items-center justify-center text-white cursor-pointer active:scale-95 transition-transform text-2xl"
+          title="Conversar com o SaúdeBot"
+        >
+          🤖
         </button>
       </section>
 
@@ -318,6 +323,63 @@
         </div>
       </section>
 
+    <!-- ================= TELA DO CHATBOT (Integrada ao Projeto) ================= -->
+      <section id="screen-chatbot" class="absolute inset-0 flex flex-col bg-[#dcfce7] screen-fade opacity-0 pointer-events-none z-0">
+        
+        <!-- Cabeçalho do Chat -->
+        <header class="bg-[#aed9a0] px-4 py-3 text-center font-bold text-emerald-950 text-base shadow-sm">
+          SaúdeBot
+        </header>
+
+        <!-- Área de Mensagens -->
+        <div id="chatMessages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
+          <!-- Mensagem inicial do Robô -->
+          <div class="flex items-end gap-2">
+            <div class="w-8 h-8 bg-[#0ea5e9] rounded-full flex items-center justify-center text-sm shrink-0 shadow">🤖</div>
+            <div class="max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm">
+              Olá! Sou o SaúdeBot e ajudo com dúvidas quanto à classificação de sintomas.
+            </div>
+          </div>
+
+          <div class="flex items-end gap-2">
+            <div class="w-8 h-8 bg-[#0ea5e9] rounded-full flex items-center justify-center text-sm shrink-0 shadow">🤖</div>
+            <div class="max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm">
+              Me diga o que você está sentindo para que eu possa te ajudar.
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de Digitação e Botão de Enviar -->
+        <div class="p-3 bg-[#bce0fd] flex items-center gap-2 border-t border-blue-200">
+          <input 
+            type="text" 
+            id="userInputChat" 
+            placeholder="Digite seu sintoma..." 
+            autocomplete="off"
+            class="flex-1 px-4 py-2.5 bg-white border border-blue-300 rounded-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 shadow-inner"
+          />
+          <button 
+            onclick="sendChat()"
+            class="w-10 h-10 bg-[#5cd65c] hover:bg-[#4bc24b] rounded-full flex items-center justify-center text-white shadow transition-all cursor-pointer shrink-0"
+          >
+            <i data-lucide="send" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Botão de Voltar (Seta Verde igual ao seu protótipo) -->
+        <div class="bg-[#bce0fd] px-4 pb-3 flex justify-between items-center">
+          <span class="text-[10px] text-slate-700">Voltar para seleção</span>
+          <button 
+            onclick="switchScreen('screen-2')"
+            class="w-9 h-9 bg-[#5cd65c] hover:bg-[#4bc24b] rounded-full flex items-center justify-center text-white shadow transition-all cursor-pointer"
+            title="Voltar"
+          >
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+      </section>
+
     </main>
 
     <!-- Indicador de Navegação (Home Bar do Celular) -->
@@ -326,8 +388,8 @@
     </div>
 
   </div>
-
   <script>
+//====================================JAVASCRIPT==================================================//
     lucide.createIcons();
 
     const userInput = document.getElementById('user-input');
@@ -374,6 +436,58 @@
         errorMsg.classList.add('hidden');
         userInput.classList.remove('border-red-400', 'bg-red-50/50');
       }
+    }
+
+    // Função local inteligente para o chatbot responder na hora
+    async function sendChat() {
+      const inputChat = document.getElementById('userInputChat');
+      const text = inputChat.value.trim();
+      if (!text) return;
+
+      const chatContainer = document.getElementById('chatMessages');
+
+      // 1. Exibe a mensagem do usuário
+      const userMsgDiv = document.createElement('div');
+      userMsgDiv.className = 'flex items-end gap-2 flex-row-reverse';
+      userMsgDiv.innerHTML = `
+        <div class="w-8 h-8 bg-[#6b8068] rounded-full flex items-center justify-center text-sm shrink-0 shadow">👤</div>
+        <div class="max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-br-sm text-xs leading-relaxed shadow-sm">${text}</div>
+      `;
+      chatContainer.appendChild(userMsgDiv);
+      inputChat.value = '';
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      // 2. Processa a resposta baseada em palavras-chave (simulando a lógica)
+      const textoLower = text.toLowerCase();
+      let classificacao = "";
+
+      const graves = ["falta de ar", "peito", "desmaio", "sangramento", "sangue"];
+      const moderados = ["febre", "corpo", "diarreia", "tontura", "vômito", "vomito"];
+      const leves = ["cabeça", "enjoo", "enjoada", "tosse", "coriza", "cansaço"];
+
+      if (graves.some(s => textoLower.includes(s))) {
+        classificacao = "**Sintomas Graves / Urgentes**";
+      } else if (moderados.some(s => textoLower.includes(s))) {
+        classificacao = "**Sintomas Moderados**";
+      } else if (leves.some(s => textoLower.includes(s))) {
+        classificacao = "**Sintomas Leves**";
+      } else {
+        classificacao = "uma categoria genérica. Se persistirem os sintomas, procure orientação.";
+      }
+
+      const respostaBot = `Entendi. Seu sintoma se configura na classificação: ${classificacao}.`;
+
+      // 3. Exibe a resposta do robô após meio segundo
+      setTimeout(() => {
+        const botMsgDiv = document.createElement('div');
+        botMsgDiv.className = 'flex items-end gap-2';
+        botMsgDiv.innerHTML = `
+          <div class="w-8 h-8 bg-[#0ea5e9] rounded-full flex items-center justify-center text-sm shrink-0 shadow">🤖</div>
+          <div class="max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm">${respostaBot}</div>
+        `;
+        chatContainer.appendChild(botMsgDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }, 500);
     }
   </script>
 </body>

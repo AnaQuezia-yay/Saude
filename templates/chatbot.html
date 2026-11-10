@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaúdeBot - Triagem</title>
+  <style>
+    /* Estilos visuais integrados para facilitar o teste */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 380px;
+      height: 667px;
+      background-color: #d1f7c4; /* Verde claro do seu protótipo */
+      display: flex;
+      flex-direction: column;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .chat-header {
+      background-color: #aed9a0;
+      padding: 14px;
+      text-align: center;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #2b4c20;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .message.bot {
+      align-self: flex-start;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      background-color: #1e88e5;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .avatar.user-avatar {
+      background-color: #72c050;
+    }
+
+    .bubble {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.4;
+      background-color: #bce0fd;
+      color: #0d3c61;
+    }
+
+    .chat-input-area {
+      padding: 10px;
+      background-color: #bce0fd;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .chat-input-area input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .chat-input-area button {
+      width: 40px;
+      height: 40px;
+      background-color: #5cd65c;
+      border: none;
+      border-radius: 50%;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="chat-header">
+      <h2>SaúdeBot</h2>
+    </header>
+
+    <!-- Área onde as mensagens aparecem -->
+    <div class="chat-messages" id="chatMessages">
+      <div class="message bot">
+        <div class="avatar">🤖</div>
+        <div class="bubble">Olá! Sou o SaúdeBot e ajudo com dúvidas quanto à classificação de sintomas.</div>
+      </div>
+      <div class="message bot">
+        <div class="avatar">🤖</div>
+        <div class="bubble">Me diga o que você está sentindo para que eu possa te ajudar.</div>
+      </div>
+    </div>
+
+    <!-- Campo de digitação -->
+    <div class="chat-input-area">
+      <input type="text" id="userInput" placeholder="Digite seu sintoma..." autocomplete="off">
+      <button id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <!-- Lógica do JavaScript integrada -->
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const text = input.value.trim();
+      
+      if (text === "") return;
+
+      // 1. Mostra a mensagem do usuário na tela
+      appendMessage("user", text);
+      input.value = "";
+
+      try {
+        // 2. Envia para o Python processar
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mensagem: text })
+        });
+
+        const data = await response.json();
+
+        // 3. Mostra a resposta que veio do servidor Python
+        setTimeout(() => {
+          appendMessage("bot", data.resposta);
+        }, 500);
+
+      } catch (error) {
+        console.error("Erro ao comunicar com o servidor:", error);
+      }
+    }
+
+    function appendMessage(sender, text) {
+      const container = document.getElementById("chatMessages");
+
+      const messageDiv = document.createElement("div");
+      messageDiv.classList.add("message", sender);
+
+      const avatarDiv = document.createElement("div");
+      avatarDiv.classList.add("avatar");
+      if (sender === "user") avatarDiv.classList.add("user-avatar");
+      avatarDiv.textContent = sender === "bot" ? "🤖" : "👤";
+
+      const bubbleDiv = document.createElement("div");
+      bubbleDiv.classList.add("bubble");
+      bubbleDiv.innerHTML = text;
+
+      messageDiv.appendChild(avatarDiv);
+      messageDiv.appendChild(bubbleDiv);
+      container.appendChild(messageDiv);
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // Envia ao pressionar Enter
+    document.getElementById("userInput").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>
