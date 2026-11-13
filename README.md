@@ -59,7 +59,6 @@ Saude/
 │   └── style.css           # Estilos visuais adicionais e animações
 ├── templates/
 │   ├── index.html          # Protótipo completo da aplicação com fluxo guiado e chat
-│   └── chatbot.html        # Interface alternativa dedicada ao SaúdeBot
 └── README.md               # Documentação geral do sistema
 ```
 
