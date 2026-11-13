@@ -3,9 +3,129 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <link rel="stylesheet" href="chat.css">
 
   <title>SaúdeBot - Triagem</title>
+=======
+  <title>SaúdeBot - Triagem</title>
+  <style>
+    /* Estilos visuais integrados para facilitar o teste */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 380px;
+      height: 667px;
+      background-color: #d1f7c4; /* Verde claro do seu protótipo */
+      display: flex;
+      flex-direction: column;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .chat-header {
+      background-color: #aed9a0;
+      padding: 14px;
+      text-align: center;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #2b4c20;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .message.bot {
+      align-self: flex-start;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      background-color: #1e88e5;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .avatar.user-avatar {
+      background-color: #72c050;
+    }
+
+    .bubble {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.4;
+      background-color: #bce0fd;
+      color: #0d3c61;
+    }
+
+    .chat-input-area {
+      padding: 10px;
+      background-color: #bce0fd;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .chat-input-area input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .chat-input-area button {
+      width: 40px;
+      height: 40px;
+      background-color: #5cd65c;
+      border: none;
+      border-radius: 50%;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+>>>>>>> a05b270 (Versão inicial do sistema medIA)
 </head>
 <body>
   <div class="app-container">
