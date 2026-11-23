@@ -294,7 +294,7 @@
         </div>
       </section>
 
-      <!-- ================= TELA DO CHATBOT (SaúdeBot Integrado) ================= -->
+      <!-- ================= TELA DO CHATBOT (SaúdeBot com Voz e Áudio) ================= -->
       <section id="screen-chatbot" class="absolute inset-0 flex flex-col bg-[#dcfce7] screen-fade opacity-0 pointer-events-none z-0">
         
         <!-- Cabeçalho do Chat -->
@@ -304,34 +304,56 @@
 
         <!-- Área de Mensagens -->
         <div id="chatMessages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
+          <!-- Mensagem inicial 1 -->
           <div class="flex items-end gap-2">
             <div class="w-8 h-8 bg-[#0ea5e9] rounded-full flex items-center justify-center text-sm shrink-0 shadow">🤖</div>
-            <div class="max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm">
-              Olá! Sou o SaúdeBot e ajudo com dúvidas quanto à classificação de sintomas.
+            <div class="max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm flex flex-col gap-1">
+              <span>Olá! Sou o SaúdeBot e ajudo com dúvidas quanto à classificação de sintomas.</span>
+              <button onclick="speakText('Olá! Sou o SaúdeBot e ajudo com dúvidas quanto à classificação de sintomas.')" class="self-end text-[#0d3c61]/70 hover:text-[#0d3c61] cursor-pointer pt-0.5" title="Ouvir mensagem">
+                <i data-lucide="volume-2" class="w-4 h-4"></i>
+              </button>
             </div>
           </div>
 
+          <!-- Mensagem inicial 2 -->
           <div class="flex items-end gap-2">
             <div class="w-8 h-8 bg-[#0ea5e9] rounded-full flex items-center justify-center text-sm shrink-0 shadow">🤖</div>
-            <div class="max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm">
-              Me diga o que você está sentindo para que eu possa te ajudar.
+            <div class="max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm flex flex-col gap-1">
+              <span>Me diga o que você está sentindo para que eu possa te ajudar.</span>
+              <button onclick="speakText('Me diga o que você está sentindo para que eu possa te ajudar.')" class="self-end text-[#0d3c61]/70 hover:text-[#0d3c61] cursor-pointer pt-0.5" title="Ouvir mensagem">
+                <i data-lucide="volume-2" class="w-4 h-4"></i>
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- Barra de Digitação e Botão de Enviar -->
+        <!-- Barra de Digitação com Microfone (esquerda) e Enviar (direita) -->
         <div class="p-3 bg-[#bce0fd] flex items-center gap-2 border-t border-blue-200">
+          <!-- Botão Microfone -->
+          <button 
+            id="micChatBtn"
+            onclick="toggleVoiceInput()"
+            class="w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center text-slate-800 shadow transition-all cursor-pointer shrink-0"
+            title="Falar sintoma"
+          >
+            <i data-lucide="mic" class="w-4 h-4"></i>
+          </button>
+
+          <!-- Campo de Texto -->
           <input 
             type="text" 
             id="userInputChat" 
-            placeholder="Digite seu sintoma..." 
+            placeholder="Digite ou fale seu sintoma..." 
             autocomplete="off"
             class="flex-1 px-4 py-2.5 bg-white border border-blue-300 rounded-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 shadow-inner"
           />
+
+          <!-- Botão Enviar -->
           <button 
             id="sendChatBtn"
             onclick="sendChat()"
             class="w-10 h-10 bg-[#5cd65c] hover:bg-[#4bc24b] rounded-full flex items-center justify-center text-white shadow transition-all cursor-pointer shrink-0"
+            title="Enviar"
           >
             <i data-lucide="send" class="w-4 h-4"></i>
           </button>
@@ -408,26 +430,106 @@
       }
     }
 
-    // ================= CHATBOT INTEGRADO COM LÓGICA LOCAL E DELAY DE DIGITAÇÃO ================= //
+    // ================= SÍNTESE DE VOZ (BOT FALANDO) ================= //
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) {
+        alert('Seu navegador não suporta leitura de áudio.');
+        return;
+      }
+      // Cancela qualquer áudio anterior em andamento
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'pt-BR';
+      utterance.rate = 1.05; // Velocidade natural
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // ================= RECONHECIMENTO DE VOZ (MICROFONE DO USUÁRIO) ================= //
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let isRecording = false;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = 'pt-BR';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        isRecording = true;
+        const micBtn = document.getElementById('micChatBtn');
+        const inputChat = document.getElementById('userInputChat');
+        micBtn.classList.remove('bg-white/80', 'text-slate-800');
+        micBtn.classList.add('bg-red-500', 'text-white', 'animate-pulse');
+        inputChat.placeholder = 'Ouvindo... pode falar!';
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        const inputChat = document.getElementById('userInputChat');
+        inputChat.value = transcript;
+        sendChat(); // Envia automaticamente assim que terminar de falar
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Erro no microfone:', event.error);
+        resetMicButton();
+      };
+
+      recognition.onend = () => {
+        resetMicButton();
+      };
+    }
+
+    function toggleVoiceInput() {
+      if (!recognition) {
+        alert('Reconhecimento de voz não suportado neste navegador. Tente usar o Google Chrome ou Edge.');
+        return;
+      }
+
+      if (isRecording) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    }
+
+    function resetMicButton() {
+      isRecording = false;
+      const micBtn = document.getElementById('micChatBtn');
+      const inputChat = document.getElementById('userInputChat');
+      if (micBtn) {
+        micBtn.classList.add('bg-white/80', 'text-slate-800');
+        micBtn.classList.remove('bg-red-500', 'text-white', 'animate-pulse');
+      }
+      if (inputChat) {
+        inputChat.placeholder = 'Digite ou fale seu sintoma...';
+      }
+    }
+
+    // ================= CHATBOT INTEGRADO ================= //
     async function sendChat() {
       const inputChat = document.getElementById('userInputChat');
       const sendChatBtn = document.getElementById('sendChatBtn');
+      const micChatBtn = document.getElementById('micChatBtn');
       const text = inputChat.value.trim();
       if (!text) return;
 
-      // 1. Trava os controles do chat para evitar envios duplicados
+      // 1. Trava os controles enquanto o bot responde
       inputChat.disabled = true;
       sendChatBtn.disabled = true;
+      micChatBtn.disabled = true;
 
       const chatContainer = document.getElementById('chatMessages');
 
-      // Exibe a mensagem do usuário com segurança (textContent)
+      // Balão do usuário
       const userMsgDiv = document.createElement('div');
       userMsgDiv.className = 'flex items-end gap-2 flex-row-reverse';
       
       const userBubble = document.createElement('div');
       userBubble.className = 'max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-br-sm text-xs leading-relaxed shadow-sm';
-      userBubble.textContent = text; // Previne XSS
+      userBubble.textContent = text;
 
       const userAvatar = document.createElement('div');
       userAvatar.className = 'w-8 h-8 bg-[#6b8068] rounded-full flex items-center justify-center text-sm shrink-0 shadow';
@@ -440,7 +542,7 @@
       inputChat.value = '';
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
-      // 2. Exibe o indicador de "Digitando..."
+      // 2. Indicador de "Digitando..."
       const typingDiv = document.createElement('div');
       typingDiv.className = 'flex items-end gap-2';
       typingDiv.id = 'typing-indicator';
@@ -451,7 +553,7 @@
       chatContainer.appendChild(typingDiv);
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
-      // Processa a resposta baseada em dicionário local
+      // Classificação local
       const textoLower = text.toLowerCase();
       let classificacao = "";
 
@@ -471,7 +573,7 @@
 
       const respostaBot = `Entendi. Seu sintoma se configura na classificação: ${classificacao}.`;
 
-      // 3. Simula um tempo de pensamento natural de 800ms antes de mostrar a resposta
+      // 3. Exibe a resposta do bot com o ícone de alto-falante
       setTimeout(() => {
         const indicator = document.getElementById('typing-indicator');
         if (indicator) indicator.remove();
@@ -480,8 +582,20 @@
         botMsgDiv.className = 'flex items-end gap-2';
         
         const botBubble = document.createElement('div');
-        botBubble.className = 'max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm';
-        botBubble.textContent = respostaBot; // Seguro contra XSS
+        botBubble.className = 'max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm flex flex-col gap-1';
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = respostaBot;
+
+        // Botão de alto-falante no canto inferior direito do balão
+        const audioBtn = document.createElement('button');
+        audioBtn.className = 'self-end text-[#0d3c61]/70 hover:text-[#0d3c61] cursor-pointer pt-0.5';
+        audioBtn.title = 'Ouvir mensagem';
+        audioBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
+        audioBtn.onclick = () => speakText(respostaBot);
+
+        botBubble.appendChild(textSpan);
+        botBubble.appendChild(audioBtn);
 
         const botAvatar = document.createElement('div');
         botAvatar.className = 'w-8 h-8 bg-[#0ea5e9] rounded-full flex items-center justify-center text-sm shrink-0 shadow';
@@ -492,14 +606,17 @@
         chatContainer.appendChild(botMsgDiv);
         chatContainer.scrollTop = chatContainer.scrollHeight;
 
-        // Reativa os campos de digitação
+        // Renderiza o novo ícone do Lucide adicionado dinamicamente
+        lucide.createIcons();
+
+        // Reativa os controles
         inputChat.disabled = false;
         sendChatBtn.disabled = false;
+        micChatBtn.disabled = false;
         inputChat.focus();
       }, 800);
     }
 
-    // Enviar mensagem do chat ao pressionar Enter
     document.getElementById('userInputChat').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         sendChat();
