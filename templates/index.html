@@ -382,6 +382,8 @@
 
   </div>
 
+ <!--------------------------------------------------------- JAVASCRIPT ------------------------------------------------------------------->
+
   <script>
     lucide.createIcons();
 
@@ -513,28 +515,31 @@ function criarReconhecimento() {
   return rec;
 }
 
-function toggleVoiceInput() {
-  if (!SpeechRecognition) {
-    alert('Reconhecimento de voz não suportado neste navegador.');
+async function toggleVoiceInput() {
+  if (!recognition) {
+    alert('Reconhecimento de voz não suportado neste navegador. Tente usar o Google Chrome ou Edge.');
     return;
   }
 
-  if (isRecording && recognition) {
-    try { recognition.stop(); } catch (e) {}
-    resetMicButton(true);
+  if (isRecording) {
+    recognition.stop();
     return;
   }
 
-  recognition = criarReconhecimento();
-  if (!recognition) return;
+  // Para a fala do bot se estiver tocando
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
 
   try {
+    // Força o navegador mobile a inicializar o microfone interno
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // Libera o stream imediatamente para a SpeechRecognition poder usá-lo
+    stream.getTracks().forEach(track => track.stop());
+
     recognition.start();
   } catch (err) {
-    console.error('Erro ao iniciar recognition:', err);
-    const inputChat = document.getElementById('userInputChat');
-    if (inputChat) inputChat.placeholder = 'Falha ao iniciar microfone';
-    resetMicButton(true);
+    alert('Não foi possível acessar o microfone interno: ' + err.message);
   }
 }
 
