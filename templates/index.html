@@ -444,35 +444,69 @@
       window.speechSynthesis.speak(utterance);
     }
 
-    // ================= 2. RECONHECIMENTO DE VOZ (MICROFONE) ================= //
+    // ================= 2. RECONHECIMENTO DE VOZ (MICROFONE OTIMIZADO PARA CELULAR) ================= //
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
     let isRecording = false;
+    let finalTranscript = '';
 
     if (SpeechRecognition) {
       recognition = new SpeechRecognition();
       recognition.lang = 'pt-BR';
       recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.interimResults = true; // Mostra as palavras na caixa enquanto você fala
 
       recognition.onstart = () => {
         isRecording = true;
+        finalTranscript = '';
         const micBtn = document.getElementById('micChatBtn');
         const inputChat = document.getElementById('userInputChat');
+        
         micBtn.classList.remove('bg-white/80', 'text-slate-800');
         micBtn.classList.add('bg-red-500', 'text-white', 'animate-pulse');
-        inputChat.placeholder = 'Ouvindo... pode falar!';
+        inputChat.value = '';
+        inputChat.placeholder = 'Ouvindo... fale agora!';
       };
 
       recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
+        let interimTranscript = '';
+        finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        // Preenche o campo em tempo real para você ver que o microfone captou
         const inputChat = document.getElementById('userInputChat');
-        inputChat.value = transcript;
-        sendChat();
+        inputChat.value = finalTranscript || interimTranscript;
       };
 
-      recognition.onerror = () => resetMicButton();
-      recognition.onend = () => resetMicButton();
+      recognition.onerror = (event) => {
+        console.error('Erro no reconhecimento de voz:', event.error);
+        const inputChat = document.getElementById('userInputChat');
+        if (event.error === 'not-allowed') {
+          alert('Permissão de microfone negada. Libere o microfone nas configurações do site no Chrome.');
+        } else if (event.error === 'no-speech') {
+          inputChat.placeholder = 'Nenhuma voz detectada. Tente novamente.';
+        }
+        resetMicButton(false);
+      };
+
+      recognition.onend = () => {
+        const inputChat = document.getElementById('userInputChat');
+        const textoCapturado = inputChat.value.trim();
+        
+        resetMicButton(true);
+
+        // Assim que parar de ouvir, se houver texto capturado, envia automaticamente para o bot
+        if (textoCapturado !== '') {
+          sendChat();
+        }
+      };
     }
 
     function toggleVoiceInput() {
@@ -483,11 +517,15 @@
       if (isRecording) {
         recognition.stop();
       } else {
-        recognition.start();
+        try {
+          recognition.start();
+        } catch (e) {
+          recognition.stop();
+        }
       }
     }
 
-    function resetMicButton() {
+    function resetMicButton(manterTexto = false) {
       isRecording = false;
       const micBtn = document.getElementById('micChatBtn');
       const inputChat = document.getElementById('userInputChat');
@@ -495,7 +533,7 @@
         micBtn.classList.add('bg-white/80', 'text-slate-800');
         micBtn.classList.remove('bg-red-500', 'text-white', 'animate-pulse');
       }
-      if (inputChat) {
+      if (inputChat && !manterTexto) {
         inputChat.placeholder = 'Digite ou fale seu sintoma...';
       }
     }
