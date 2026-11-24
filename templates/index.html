@@ -327,42 +327,32 @@
           </div>
         </div>
 
-        <!-- Barra de Digitação com Transcrição, Gravação de Áudio e Enviar -->
-        <div class="p-3 bg-[#bce0fd] flex items-center gap-1.5 border-t border-blue-200">
-          <!-- 1. Botão Ditar Voz em Texto -->
+        <!-- Barra de Digitação com Microfone (esquerda) e Enviar (direita) -->
+        <div class="p-3 bg-[#bce0fd] flex items-center gap-2 border-t border-blue-200">
+          <!-- Botão Microfone -->
           <button 
             id="micChatBtn"
             onclick="toggleVoiceInput()"
-            class="w-9 h-9 bg-white/80 hover:bg-white rounded-full flex items-center justify-center text-slate-800 shadow transition-all cursor-pointer shrink-0"
-            title="Ditar sintoma (Fala para texto)"
+            class="w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center text-slate-800 shadow transition-all cursor-pointer shrink-0"
+            title="Falar sintoma"
           >
             <i data-lucide="mic" class="w-4 h-4"></i>
-          </button>
-
-          <!-- 2. Botão Gravar Mensagem de Áudio (Microfone Interno) -->
-          <button 
-            id="recordAudioBtn"
-            onclick="toggleAudioRecording()"
-            class="w-9 h-9 bg-white/80 hover:bg-white rounded-full flex items-center justify-center text-emerald-700 shadow transition-all cursor-pointer shrink-0"
-            title="Gravar áudio"
-          >
-            <i data-lucide="audio-lines" class="w-4 h-4"></i>
           </button>
 
           <!-- Campo de Texto -->
           <input 
             type="text" 
             id="userInputChat" 
-            placeholder="Digite, dite ou grave..." 
+            placeholder="Digite ou fale seu sintoma..." 
             autocomplete="off"
-            class="flex-1 px-3 py-2 bg-white border border-blue-300 rounded-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 shadow-inner min-w-0"
+            class="flex-1 px-4 py-2.5 bg-white border border-blue-300 rounded-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 shadow-inner"
           />
 
           <!-- Botão Enviar -->
           <button 
             id="sendChatBtn"
             onclick="sendChat()"
-            class="w-9 h-9 bg-[#5cd65c] hover:bg-[#4bc24b] rounded-full flex items-center justify-center text-white shadow transition-all cursor-pointer shrink-0"
+            class="w-10 h-10 bg-[#5cd65c] hover:bg-[#4bc24b] rounded-full flex items-center justify-center text-white shadow transition-all cursor-pointer shrink-0"
             title="Enviar"
           >
             <i data-lucide="send" class="w-4 h-4"></i>
@@ -454,7 +444,7 @@
       window.speechSynthesis.speak(utterance);
     }
 
-    // ================= 2. RECONHECIMENTO DE VOZ (DITAR TEXTO) ================= //
+    // ================= 2. RECONHECIMENTO DE VOZ (MICROFONE) ================= //
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
     let isRecording = false;
@@ -487,7 +477,7 @@
 
     function toggleVoiceInput() {
       if (!recognition) {
-        alert('Ditado por voz não suportado neste navegador. Tente usar o botão de gravação de áudio ao lado ou abra no Chrome.');
+        alert('Reconhecimento de voz não suportado neste navegador. Tente usar o Google Chrome.');
         return;
       }
       if (isRecording) {
@@ -506,177 +496,15 @@
         micBtn.classList.remove('bg-red-500', 'text-white', 'animate-pulse');
       }
       if (inputChat) {
-        inputChat.placeholder = 'Digite, dite ou grave...';
+        inputChat.placeholder = 'Digite ou fale seu sintoma...';
       }
     }
 
-    // ================= 3. GRAVAÇÃO DE ÁUDIO + RECONHECIMENTO SIMULTÂNEO ================= //
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let isRecordingAudio = false;
-    let textoCapturadoNoAudio = "";
-    let audioSpeechRec = null;
-
-    async function toggleAudioRecording() {
-      const recordBtn = document.getElementById('recordAudioBtn');
-      const inputChat = document.getElementById('userInputChat');
-
-      // Se já estiver gravando, para e processa
-      if (isRecordingAudio && mediaRecorder) {
-        mediaRecorder.stop();
-        if (audioSpeechRec) {
-          try { audioSpeechRec.stop(); } catch (e) {}
-        }
-        isRecordingAudio = false;
-        recordBtn.classList.remove('bg-red-500', 'text-white', 'animate-pulse');
-        recordBtn.classList.add('bg-white/80', 'text-emerald-700');
-        inputChat.placeholder = 'Digite, dite ou grave...';
-        return;
-      }
-
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-        // Detecta o formato de áudio suportado pelo celular (webm no Android, mp4 no iPhone)
-        const mimeType = MediaRecorder.isTypeSupported('audio/webm') 
-          ? 'audio/webm' 
-          : (MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '');
-
-        mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-        audioChunks = [];
-        textoCapturadoNoAudio = "";
-
-        // Inicia o reconhecimento de fala em paralelo para o bot entender o sintoma
-        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRec) {
-          audioSpeechRec = new SpeechRec();
-          audioSpeechRec.lang = 'pt-BR';
-          audioSpeechRec.continuous = true;
-          audioSpeechRec.interimResults = true;
-
-          audioSpeechRec.onresult = (event) => {
-            let transcricao = "";
-            for (let i = 0; i < event.results.length; i++) {
-              transcricao += event.results[i][0].transcript;
-            }
-            textoCapturadoNoAudio = transcricao;
-          };
-
-          try { audioSpeechRec.start(); } catch (e) {}
-        }
-
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data && event.data.size > 0) {
-            audioChunks.push(event.data);
-          }
-        };
-
-        mediaRecorder.onstop = () => {
-          const tipoFinal = mediaRecorder.mimeType || 'audio/webm';
-          const audioBlob = new Blob(audioChunks, { type: tipoFinal });
-          const audioUrl = URL.createObjectURL(audioBlob);
-          
-          // Libera o microfone do celular
-          stream.getTracks().forEach(track => track.stop());
-
-          // Aguarda 300ms para garantir que a última palavra falada foi capturada
-          setTimeout(() => {
-            sendAudioMessageToChat(audioUrl, textoCapturadoNoAudio);
-          }, 300);
-        };
-
-        // O parâmetro 250 força o celular a salvar pedaços do áudio a cada 250ms (evita áudio vazio)
-        mediaRecorder.start(250);
-        isRecordingAudio = true;
-
-        recordBtn.classList.remove('bg-white/80', 'text-emerald-700');
-        recordBtn.classList.add('bg-red-500', 'text-white', 'animate-pulse');
-        inputChat.placeholder = 'Gravando... fale o sintoma e toque de novo';
-
-      } catch (err) {
-        console.error('Erro ao acessar microfone:', err);
-        alert('Não foi possível acessar o microfone. Verifique a permissão do navegador.');
-      }
-    }
-
-    function sendAudioMessageToChat(audioUrl, textoFalado) {
-      const chatContainer = document.getElementById('chatMessages');
-
-      // 1. Balão do usuário com o player de áudio
-      const userMsgDiv = document.createElement('div');
-      userMsgDiv.className = 'flex items-end gap-2 flex-row-reverse';
-
-      const userBubble = document.createElement('div');
-      userBubble.className = 'max-w-[78%] bg-[#bce0fd] text-[#0d3c61] p-2.5 rounded-2xl rounded-br-sm shadow-sm flex flex-col gap-1';
-
-      const audioPlayer = document.createElement('audio');
-      audioPlayer.controls = true;
-      audioPlayer.src = audioUrl;
-      audioPlayer.className = 'h-8 max-w-[200px]';
-      userBubble.appendChild(audioPlayer);
-
-      // Se conseguiu transcrever o que foi dito no áudio, mostra uma legenda discreta
-      if (textoFalado.trim()) {
-        const legenda = document.createElement('span');
-        legenda.className = 'text-[10px] text-[#0d3c61]/80 italic px-1';
-        legenda.textContent = `"${textoFalado.trim()}"`;
-        userBubble.appendChild(legenda);
-      }
-
-      const userAvatar = document.createElement('div');
-      userAvatar.className = 'w-8 h-8 bg-[#6b8068] rounded-full flex items-center justify-center text-sm shrink-0 shadow';
-      userAvatar.textContent = '👤';
-
-      userMsgDiv.appendChild(userBubble);
-      userMsgDiv.appendChild(userAvatar);
-      chatContainer.appendChild(userMsgDiv);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-
-      // 2. Indicador de processamento
-      const typingDiv = document.createElement('div');
-      typingDiv.className = 'flex items-end gap-2';
-      typingDiv.id = 'typing-indicator';
-      typingDiv.innerHTML = `
-        <div class="w-8 h-8 bg-[#0ea5e9] rounded-full flex items-center justify-center text-sm shrink-0 shadow">🤖</div>
-        <div class="max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm italic">Analisando áudio...</div>
-      `;
-      chatContainer.appendChild(typingDiv);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-
-      // 3. Classifica o sintoma baseado no que foi falado no áudio
-      setTimeout(() => {
-        const indicator = document.getElementById('typing-indicator');
-        if (indicator) indicator.remove();
-
-        const textoLower = textoFalado.toLowerCase();
-        let respostaBot = "";
-
-        const graves = ["falta de ar", "peito", "desmaio", "sangramento", "sangue"];
-        const moderados = ["febre", "corpo", "diarreia", "tontura", "vômito", "vomito"];
-        const leves = ["cabeça", "enjoo", "enjoada", "tosse", "coriza", "cansaço"];
-
-        if (!textoLower.trim()) {
-          respostaBot = "Recebi seu áudio, mas não consegui identificar palavras claras. Tente falar mais perto do microfone ou digite seu sintoma.";
-        } else if (graves.some(s => textoLower.includes(s))) {
-          respostaBot = "Entendi pelo seu áudio. Seu sintoma se configura na classificação: Sintomas Graves / Urgentes.";
-        } else if (moderados.some(s => textoLower.includes(s))) {
-          respostaBot = "Entendi pelo seu áudio. Seu sintoma se configura na classificação: Sintomas Moderados.";
-        } else if (leves.some(s => textoLower.includes(s))) {
-          respostaBot = "Entendi pelo seu áudio. Seu sintoma se configura na classificação: Sintomas Leves.";
-        } else {
-          respostaBot = `Ouvi você dizer "${textoFalado.trim()}", mas não encontrei um sintoma específico no meu dicionário. Tente mencionar sintomas como febre, dor de cabeça ou falta de ar.`;
-        }
-
-        appendBotMessage(respostaBot);
-      }, 900);
-    }
-
-    // ================= 4. CHATBOT DE TEXTO INTEGRADO ================= //
+    // ================= 3. CHATBOT INTEGRADO ================= //
     async function sendChat() {
       const inputChat = document.getElementById('userInputChat');
       const sendChatBtn = document.getElementById('sendChatBtn');
       const micChatBtn = document.getElementById('micChatBtn');
-      const recordAudioBtn = document.getElementById('recordAudioBtn');
       const text = inputChat.value.trim();
       if (!text) return;
 
@@ -684,7 +512,6 @@
       inputChat.disabled = true;
       sendChatBtn.disabled = true;
       micChatBtn.disabled = true;
-      recordAudioBtn.disabled = true;
 
       const chatContainer = document.getElementById('chatMessages');
 
@@ -742,49 +569,41 @@
         const indicator = document.getElementById('typing-indicator');
         if (indicator) indicator.remove();
 
-        appendBotMessage(respostaBot);
+        const botMsgDiv = document.createElement('div');
+        botMsgDiv.className = 'flex items-end gap-2';
+        
+        const botBubble = document.createElement('div');
+        botBubble.className = 'max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm flex flex-col gap-1';
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = respostaBot;
+
+        const audioBtn = document.createElement('button');
+        audioBtn.className = 'self-end text-[#0d3c61]/70 hover:text-[#0d3c61] cursor-pointer pt-0.5';
+        audioBtn.title = 'Ouvir mensagem';
+        audioBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
+        audioBtn.onclick = () => speakText(respostaBot);
+
+        botBubble.appendChild(textSpan);
+        botBubble.appendChild(audioBtn);
+
+        const botAvatar = document.createElement('div');
+        botAvatar.className = 'w-8 h-8 bg-[#0ea5e9] rounded-full flex items-center justify-center text-sm shrink-0 shadow';
+        botAvatar.textContent = '🤖';
+
+        botMsgDiv.appendChild(botAvatar);
+        botMsgDiv.appendChild(botBubble);
+        chatContainer.appendChild(botMsgDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        lucide.createIcons();
 
         // Reativa os controles
         inputChat.disabled = false;
         sendChatBtn.disabled = false;
         micChatBtn.disabled = false;
-        recordAudioBtn.disabled = false;
         inputChat.focus();
       }, 800);
-    }
-
-    // Função auxiliar para renderizar mensagens do SaúdeBot com botão de áudio
-    function appendBotMessage(respostaBot) {
-      const chatContainer = document.getElementById('chatMessages');
-
-      const botMsgDiv = document.createElement('div');
-      botMsgDiv.className = 'flex items-end gap-2';
-      
-      const botBubble = document.createElement('div');
-      botBubble.className = 'max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm flex flex-col gap-1';
-
-      const textSpan = document.createElement('span');
-      textSpan.textContent = respostaBot;
-
-      const audioBtn = document.createElement('button');
-      audioBtn.className = 'self-end text-[#0d3c61]/70 hover:text-[#0d3c61] cursor-pointer pt-0.5';
-      audioBtn.title = 'Ouvir mensagem';
-      audioBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
-      audioBtn.onclick = () => speakText(respostaBot);
-
-      botBubble.appendChild(textSpan);
-      botBubble.appendChild(audioBtn);
-
-      const botAvatar = document.createElement('div');
-      botAvatar.className = 'w-8 h-8 bg-[#0ea5e9] rounded-full flex items-center justify-center text-sm shrink-0 shadow';
-      botAvatar.textContent = '🤖';
-
-      botMsgDiv.appendChild(botAvatar);
-      botMsgDiv.appendChild(botBubble);
-      chatContainer.appendChild(botMsgDiv);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-
-      lucide.createIcons();
     }
 
     // Enviar mensagem ao pressionar Enter
