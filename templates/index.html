@@ -510,17 +510,23 @@
       }
     }
 
-    // ================= 3. GRAVAÇÃO DE ÁUDIO NATIVA (MICROFONE INTERNO) ================= //
+    // ================= 3. GRAVAÇÃO DE ÁUDIO + RECONHECIMENTO SIMULTÂNEO ================= //
     let mediaRecorder = null;
     let audioChunks = [];
     let isRecordingAudio = false;
+    let textoCapturadoNoAudio = "";
+    let audioSpeechRec = null;
 
     async function toggleAudioRecording() {
       const recordBtn = document.getElementById('recordAudioBtn');
       const inputChat = document.getElementById('userInputChat');
 
+      // Se já estiver gravando, para e processa
       if (isRecordingAudio && mediaRecorder) {
         mediaRecorder.stop();
+        if (audioSpeechRec) {
+          try { audioSpeechRec.stop(); } catch (e) {}
+        }
         isRecordingAudio = false;
         recordBtn.classList.remove('bg-red-500', 'text-white', 'animate-pulse');
         recordBtn.classList.add('bg-white/80', 'text-emerald-700');
@@ -529,47 +535,74 @@
       }
 
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true
-          } 
-        });
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-        mediaRecorder = new MediaRecorder(stream);
+        // Detecta o formato de áudio suportado pelo celular (webm no Android, mp4 no iPhone)
+        const mimeType = MediaRecorder.isTypeSupported('audio/webm') 
+          ? 'audio/webm' 
+          : (MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '');
+
+        mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
         audioChunks = [];
+        textoCapturadoNoAudio = "";
+
+        // Inicia o reconhecimento de fala em paralelo para o bot entender o sintoma
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRec) {
+          audioSpeechRec = new SpeechRec();
+          audioSpeechRec.lang = 'pt-BR';
+          audioSpeechRec.continuous = true;
+          audioSpeechRec.interimResults = true;
+
+          audioSpeechRec.onresult = (event) => {
+            let transcricao = "";
+            for (let i = 0; i < event.results.length; i++) {
+              transcricao += event.results[i][0].transcript;
+            }
+            textoCapturadoNoAudio = transcricao;
+          };
+
+          try { audioSpeechRec.start(); } catch (e) {}
+        }
 
         mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0) {
+          if (event.data && event.data.size > 0) {
             audioChunks.push(event.data);
           }
         };
 
         mediaRecorder.onstop = () => {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const tipoFinal = mediaRecorder.mimeType || 'audio/webm';
+          const audioBlob = new Blob(audioChunks, { type: tipoFinal });
           const audioUrl = URL.createObjectURL(audioBlob);
+          
+          // Libera o microfone do celular
           stream.getTracks().forEach(track => track.stop());
 
-          sendAudioMessageToChat(audioUrl);
+          // Aguarda 300ms para garantir que a última palavra falada foi capturada
+          setTimeout(() => {
+            sendAudioMessageToChat(audioUrl, textoCapturadoNoAudio);
+          }, 300);
         };
 
-        mediaRecorder.start();
+        // O parâmetro 250 força o celular a salvar pedaços do áudio a cada 250ms (evita áudio vazio)
+        mediaRecorder.start(250);
         isRecordingAudio = true;
 
         recordBtn.classList.remove('bg-white/80', 'text-emerald-700');
         recordBtn.classList.add('bg-red-500', 'text-white', 'animate-pulse');
-        inputChat.placeholder = 'Gravando áudio... toque novamente para enviar';
+        inputChat.placeholder = 'Gravando... fale o sintoma e toque de novo';
 
       } catch (err) {
-        console.error('Erro ao acessar microfone interno:', err);
-        alert('Não foi possível acessar o microfone. Verifique se o site está em HTTPS (GitHub Pages) e se a permissão de áudio está ativada.');
+        console.error('Erro ao acessar microfone:', err);
+        alert('Não foi possível acessar o microfone. Verifique a permissão do navegador.');
       }
     }
 
-    function sendAudioMessageToChat(audioUrl) {
+    function sendAudioMessageToChat(audioUrl, textoFalado) {
       const chatContainer = document.getElementById('chatMessages');
 
-      // Balão do usuário com player de áudio
+      // 1. Balão do usuário com o player de áudio
       const userMsgDiv = document.createElement('div');
       userMsgDiv.className = 'flex items-end gap-2 flex-row-reverse';
 
@@ -580,8 +613,15 @@
       audioPlayer.controls = true;
       audioPlayer.src = audioUrl;
       audioPlayer.className = 'h-8 max-w-[200px]';
-
       userBubble.appendChild(audioPlayer);
+
+      // Se conseguiu transcrever o que foi dito no áudio, mostra uma legenda discreta
+      if (textoFalado.trim()) {
+        const legenda = document.createElement('span');
+        legenda.className = 'text-[10px] text-[#0d3c61]/80 italic px-1';
+        legenda.textContent = `"${textoFalado.trim()}"`;
+        userBubble.appendChild(legenda);
+      }
 
       const userAvatar = document.createElement('div');
       userAvatar.className = 'w-8 h-8 bg-[#6b8068] rounded-full flex items-center justify-center text-sm shrink-0 shadow';
@@ -592,22 +632,40 @@
       chatContainer.appendChild(userMsgDiv);
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
-      // Indicador de "Ouvindo seu áudio..."
+      // 2. Indicador de processamento
       const typingDiv = document.createElement('div');
       typingDiv.className = 'flex items-end gap-2';
       typingDiv.id = 'typing-indicator';
       typingDiv.innerHTML = `
         <div class="w-8 h-8 bg-[#0ea5e9] rounded-full flex items-center justify-center text-sm shrink-0 shadow">🤖</div>
-        <div class="max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm italic">Ouvindo seu áudio...</div>
+        <div class="max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm italic">Analisando áudio...</div>
       `;
       chatContainer.appendChild(typingDiv);
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
+      // 3. Classifica o sintoma baseado no que foi falado no áudio
       setTimeout(() => {
         const indicator = document.getElementById('typing-indicator');
         if (indicator) indicator.remove();
 
-        const respostaBot = "Recebi sua mensagem de áudio! Para uma triagem automática imediata aqui no protótipo, você também pode escrever ou ditar os sintomas principais (ex: febre, dor de cabeça ou falta de ar).";
+        const textoLower = textoFalado.toLowerCase();
+        let respostaBot = "";
+
+        const graves = ["falta de ar", "peito", "desmaio", "sangramento", "sangue"];
+        const moderados = ["febre", "corpo", "diarreia", "tontura", "vômito", "vomito"];
+        const leves = ["cabeça", "enjoo", "enjoada", "tosse", "coriza", "cansaço"];
+
+        if (!textoLower.trim()) {
+          respostaBot = "Recebi seu áudio, mas não consegui identificar palavras claras. Tente falar mais perto do microfone ou digite seu sintoma.";
+        } else if (graves.some(s => textoLower.includes(s))) {
+          respostaBot = "Entendi pelo seu áudio. Seu sintoma se configura na classificação: Sintomas Graves / Urgentes.";
+        } else if (moderados.some(s => textoLower.includes(s))) {
+          respostaBot = "Entendi pelo seu áudio. Seu sintoma se configura na classificação: Sintomas Moderados.";
+        } else if (leves.some(s => textoLower.includes(s))) {
+          respostaBot = "Entendi pelo seu áudio. Seu sintoma se configura na classificação: Sintomas Leves.";
+        } else {
+          respostaBot = `Ouvi você dizer "${textoFalado.trim()}", mas não encontrei um sintoma específico no meu dicionário. Tente mencionar sintomas como febre, dor de cabeça ou falta de ar.`;
+        }
 
         appendBotMessage(respostaBot);
       }, 900);
