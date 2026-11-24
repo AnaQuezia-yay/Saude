@@ -444,113 +444,112 @@
       window.speechSynthesis.speak(utterance);
     }
 
-    // ================= 2. RECONHECIMENTO DE VOZ (COM DIAGNÓSTICO NO CELULAR) ================= //
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recognition = null;
-    let isRecording = false;
-    let textoReconhecido = '';
+    // ================= 2. RECONHECIMENTO DE VOZ + FALLBACK DE ÁUDIO ================= //
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let isRecording = false;
+let textoReconhecido = '';
 
-    function criarReconhecimento() {
-      if (!SpeechRecognition) return null;
-      const rec = new SpeechRecognition();
-      rec.lang = 'pt-BR';
-      rec.continuous = false;
-      rec.interimResults = true;
+function criarReconhecimento() {
+  if (!SpeechRecognition) return null;
+  const rec = new SpeechRecognition();
+  rec.lang = 'pt-BR';
+  rec.continuous = false;
+  rec.interimResults = true;
 
-      rec.onstart = () => {
-        isRecording = true;
-        textoReconhecido = '';
-        const micBtn = document.getElementById('micChatBtn');
-        const inputChat = document.getElementById('userInputChat');
-        micBtn.classList.remove('bg-white/80', 'text-slate-800');
-        micBtn.classList.add('bg-red-500', 'text-white', 'animate-pulse');
-        inputChat.value = '';
-        inputChat.placeholder = 'Ouvindo... fale agora!';
-      };
+  rec.onstart = () => {
+    isRecording = true;
+    textoReconhecido = '';
+    const micBtn = document.getElementById('micChatBtn');
+    const inputChat = document.getElementById('userInputChat');
+    micBtn.classList.remove('bg-white/80', 'text-slate-800');
+    micBtn.classList.add('bg-red-500', 'text-white', 'animate-pulse');
+    inputChat.value = '';
+    inputChat.placeholder = 'Ouvindo... fale agora!';
+  };
 
-      rec.onresult = (event) => {
-        let combinado = '';
-        for (let i = 0; i < event.results.length; i++) {
-          combinado += event.results[i][0].transcript;
-        }
-        textoReconhecido = combinado.trim();
-        const inputChat = document.getElementById('userInputChat');
-        if (inputChat && textoReconhecido) {
-          inputChat.value = textoReconhecido;
-        }
-      };
-
-      rec.onerror = (event) => {
-        console.error('SpeechRecognition erro:', event.error);
-        const inputChat = document.getElementById('userInputChat');
-        const msgsErro = {
-          'not-allowed': 'Permissão negada no navegador/Android',
-          'service-not-allowed': 'Serviço de voz bloqueado no aparelho',
-          'no-speech': 'Não ouvi nenhuma fala. Tente de novo',
-          'audio-capture': 'Microfone indisponível/ocupado',
-          'network': 'Sem conexão com serviço de voz (rede/DNS)'
-        };
-        if (inputChat) {
-          inputChat.placeholder = msgsErro[event.error] || `Erro de voz: ${event.error}`;
-        }
-        resetMicButton(true);
-      };
-
-      rec.onend = () => {
-        const inputChat = document.getElementById('userInputChat');
-        const valorFinal = (inputChat ? inputChat.value.trim() : '') || textoReconhecido;
-        resetMicButton(true);
-
-        if (valorFinal) {
-          if (inputChat) inputChat.value = valorFinal;
-          // Pequeno delay para garantir que o estado visual do microfone já encerrou
-          setTimeout(() => {
-            sendChat();
-          }, 100);
-        }
-      };
-
-      return rec;
+  rec.onresult = (event) => {
+    let combinado = '';
+    for (let i = 0; i < event.results.length; i++) {
+      combinado += event.results[i][0].transcript;
     }
-
-    function toggleVoiceInput() {
-      if (!SpeechRecognition) {
-        alert('Seu navegador não suporta reconhecimento de voz nativo.');
-        return;
-      }
-
-      if (isRecording && recognition) {
-        try { recognition.stop(); } catch (e) {}
-        resetMicButton(true);
-        return;
-      }
-
-      // Cria uma instância nova a cada clique (evita travamentos após erro no Android)
-      recognition = criarReconhecimento();
-      if (!recognition) return;
-
-      try {
-        recognition.start();
-      } catch (err) {
-        console.error('Erro ao iniciar recognition:', err);
-        const inputChat = document.getElementById('userInputChat');
-        if (inputChat) inputChat.placeholder = 'Falha ao iniciar microfone. Toque de novo.';
-        resetMicButton(true);
-      }
+    textoReconhecido = combinado.trim();
+    const inputChat = document.getElementById('userInputChat');
+    if (inputChat && textoReconhecido) {
+      inputChat.value = textoReconhecido;
     }
+  };
 
-    function resetMicButton(manterPlaceholder = false) {
-      isRecording = false;
-      const micBtn = document.getElementById('micChatBtn');
-      const inputChat = document.getElementById('userInputChat');
-      if (micBtn) {
-        micBtn.classList.add('bg-white/80', 'text-slate-800');
-        micBtn.classList.remove('bg-red-500', 'text-white', 'animate-pulse');
-      }
-      if (inputChat && !manterPlaceholder) {
-        inputChat.placeholder = 'Digite ou fale seu sintoma...';
-      }
+  rec.onerror = (event) => {
+    console.error('SpeechRecognition erro:', event.error);
+    const inputChat = document.getElementById('userInputChat');
+    const msgsErro = {
+      'not-allowed': 'Permissão de microfone negada',
+      'service-not-allowed': 'Serviço de voz bloqueado',
+      'no-speech': 'Nenhuma fala detectada',
+      'audio-capture': 'Microfone indisponível',
+      'network': 'Falha de rede no serviço de voz do Google'
+    };
+    const detalhe = msgsErro[event.error] || `Erro: ${event.error}`;
+    if (inputChat) {
+      inputChat.placeholder = detalhe;
     }
+    resetMicButton(true);
+  };
+
+  rec.onend = () => {
+    const inputChat = document.getElementById('userInputChat');
+    const valorFinal = (inputChat ? inputChat.value.trim() : '') || textoReconhecido;
+    resetMicButton(true);
+
+    if (valorFinal) {
+      if (inputChat) inputChat.value = valorFinal;
+      setTimeout(() => {
+        sendChat();
+      }, 100);
+    }
+  };
+
+  return rec;
+}
+
+function toggleVoiceInput() {
+  if (!SpeechRecognition) {
+    alert('Reconhecimento de voz não suportado neste navegador.');
+    return;
+  }
+
+  if (isRecording && recognition) {
+    try { recognition.stop(); } catch (e) {}
+    resetMicButton(true);
+    return;
+  }
+
+  recognition = criarReconhecimento();
+  if (!recognition) return;
+
+  try {
+    recognition.start();
+  } catch (err) {
+    console.error('Erro ao iniciar recognition:', err);
+    const inputChat = document.getElementById('userInputChat');
+    if (inputChat) inputChat.placeholder = 'Falha ao iniciar microfone';
+    resetMicButton(true);
+  }
+}
+
+function resetMicButton(manterPlaceholder = false) {
+  isRecording = false;
+  const micBtn = document.getElementById('micChatBtn');
+  const inputChat = document.getElementById('userInputChat');
+  if (micBtn) {
+    micBtn.classList.add('bg-white/80', 'text-slate-800');
+    micBtn.classList.remove('bg-red-500', 'text-white', 'animate-pulse');
+  }
+  if (inputChat && !manterPlaceholder) {
+    inputChat.placeholder = 'Digite ou fale seu sintoma...';
+  }
+}
 
     // ================= 3. CHATBOT INTEGRADO ================= //
     async function sendChat() {
