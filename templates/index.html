@@ -327,32 +327,42 @@
           </div>
         </div>
 
-        <!-- Barra de Digitação com Microfone (esquerda) e Enviar (direita) -->
-        <div class="p-3 bg-[#bce0fd] flex items-center gap-2 border-t border-blue-200">
-          <!-- Botão Microfone -->
+        <!-- Barra de Digitação com Transcrição, Gravação de Áudio e Enviar -->
+        <div class="p-3 bg-[#bce0fd] flex items-center gap-1.5 border-t border-blue-200">
+          <!-- 1. Botão Ditar Voz em Texto -->
           <button 
             id="micChatBtn"
             onclick="toggleVoiceInput()"
-            class="w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center text-slate-800 shadow transition-all cursor-pointer shrink-0"
-            title="Falar sintoma"
+            class="w-9 h-9 bg-white/80 hover:bg-white rounded-full flex items-center justify-center text-slate-800 shadow transition-all cursor-pointer shrink-0"
+            title="Ditar sintoma (Fala para texto)"
           >
             <i data-lucide="mic" class="w-4 h-4"></i>
+          </button>
+
+          <!-- 2. Botão Gravar Mensagem de Áudio (Microfone Interno) -->
+          <button 
+            id="recordAudioBtn"
+            onclick="toggleAudioRecording()"
+            class="w-9 h-9 bg-white/80 hover:bg-white rounded-full flex items-center justify-center text-emerald-700 shadow transition-all cursor-pointer shrink-0"
+            title="Gravar áudio"
+          >
+            <i data-lucide="audio-lines" class="w-4 h-4"></i>
           </button>
 
           <!-- Campo de Texto -->
           <input 
             type="text" 
             id="userInputChat" 
-            placeholder="Digite ou fale seu sintoma..." 
+            placeholder="Digite, dite ou grave..." 
             autocomplete="off"
-            class="flex-1 px-4 py-2.5 bg-white border border-blue-300 rounded-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 shadow-inner"
+            class="flex-1 px-3 py-2 bg-white border border-blue-300 rounded-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 shadow-inner min-w-0"
           />
 
           <!-- Botão Enviar -->
           <button 
             id="sendChatBtn"
             onclick="sendChat()"
-            class="w-10 h-10 bg-[#5cd65c] hover:bg-[#4bc24b] rounded-full flex items-center justify-center text-white shadow transition-all cursor-pointer shrink-0"
+            class="w-9 h-9 bg-[#5cd65c] hover:bg-[#4bc24b] rounded-full flex items-center justify-center text-white shadow transition-all cursor-pointer shrink-0"
             title="Enviar"
           >
             <i data-lucide="send" class="w-4 h-4"></i>
@@ -390,6 +400,7 @@
     const selectedHospitalTitle = document.getElementById('selected-hospital-title');
     const routeDetails = document.getElementById('route-details');
 
+    // ================= NAVEGAÇÃO ENTRE TELAS ================= //
     function switchScreen(targetScreenId) {
       if (targetScreenId === 'screen-2') {
         const val = userInput.value.trim();
@@ -430,22 +441,20 @@
       }
     }
 
-    // ================= SÍNTESE DE VOZ (BOT FALANDO) ================= //
+    // ================= 1. SÍNTESE DE VOZ (BOT FALANDO) ================= //
     function speakText(text) {
       if (!('speechSynthesis' in window)) {
         alert('Seu navegador não suporta leitura de áudio.');
         return;
       }
-      // Cancela qualquer áudio anterior em andamento
       window.speechSynthesis.cancel();
-
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'pt-BR';
-      utterance.rate = 1.05; // Velocidade natural
+      utterance.rate = 1.05;
       window.speechSynthesis.speak(utterance);
     }
 
-    // ================= RECONHECIMENTO DE VOZ (MICROFONE DO USUÁRIO) ================= //
+    // ================= 2. RECONHECIMENTO DE VOZ (DITAR TEXTO) ================= //
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
     let isRecording = false;
@@ -469,25 +478,18 @@
         const transcript = event.results[0][0].transcript;
         const inputChat = document.getElementById('userInputChat');
         inputChat.value = transcript;
-        sendChat(); // Envia automaticamente assim que terminar de falar
+        sendChat();
       };
 
-      recognition.onerror = (event) => {
-        console.error('Erro no microfone:', event.error);
-        resetMicButton();
-      };
-
-      recognition.onend = () => {
-        resetMicButton();
-      };
+      recognition.onerror = () => resetMicButton();
+      recognition.onend = () => resetMicButton();
     }
 
     function toggleVoiceInput() {
       if (!recognition) {
-        alert('Reconhecimento de voz não suportado neste navegador. Tente usar o Google Chrome ou Edge.');
+        alert('Ditado por voz não suportado neste navegador. Tente usar o botão de gravação de áudio ao lado ou abra no Chrome.');
         return;
       }
-
       if (isRecording) {
         recognition.stop();
       } else {
@@ -504,22 +506,127 @@
         micBtn.classList.remove('bg-red-500', 'text-white', 'animate-pulse');
       }
       if (inputChat) {
-        inputChat.placeholder = 'Digite ou fale seu sintoma...';
+        inputChat.placeholder = 'Digite, dite ou grave...';
       }
     }
 
-    // ================= CHATBOT INTEGRADO ================= //
+    // ================= 3. GRAVAÇÃO DE ÁUDIO NATIVA (MICROFONE INTERNO) ================= //
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecordingAudio = false;
+
+    async function toggleAudioRecording() {
+      const recordBtn = document.getElementById('recordAudioBtn');
+      const inputChat = document.getElementById('userInputChat');
+
+      if (isRecordingAudio && mediaRecorder) {
+        mediaRecorder.stop();
+        isRecordingAudio = false;
+        recordBtn.classList.remove('bg-red-500', 'text-white', 'animate-pulse');
+        recordBtn.classList.add('bg-white/80', 'text-emerald-700');
+        inputChat.placeholder = 'Digite, dite ou grave...';
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true
+          } 
+        });
+
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          stream.getTracks().forEach(track => track.stop());
+
+          sendAudioMessageToChat(audioUrl);
+        };
+
+        mediaRecorder.start();
+        isRecordingAudio = true;
+
+        recordBtn.classList.remove('bg-white/80', 'text-emerald-700');
+        recordBtn.classList.add('bg-red-500', 'text-white', 'animate-pulse');
+        inputChat.placeholder = 'Gravando áudio... toque novamente para enviar';
+
+      } catch (err) {
+        console.error('Erro ao acessar microfone interno:', err);
+        alert('Não foi possível acessar o microfone. Verifique se o site está em HTTPS (GitHub Pages) e se a permissão de áudio está ativada.');
+      }
+    }
+
+    function sendAudioMessageToChat(audioUrl) {
+      const chatContainer = document.getElementById('chatMessages');
+
+      // Balão do usuário com player de áudio
+      const userMsgDiv = document.createElement('div');
+      userMsgDiv.className = 'flex items-end gap-2 flex-row-reverse';
+
+      const userBubble = document.createElement('div');
+      userBubble.className = 'max-w-[78%] bg-[#bce0fd] text-[#0d3c61] p-2.5 rounded-2xl rounded-br-sm shadow-sm flex flex-col gap-1';
+
+      const audioPlayer = document.createElement('audio');
+      audioPlayer.controls = true;
+      audioPlayer.src = audioUrl;
+      audioPlayer.className = 'h-8 max-w-[200px]';
+
+      userBubble.appendChild(audioPlayer);
+
+      const userAvatar = document.createElement('div');
+      userAvatar.className = 'w-8 h-8 bg-[#6b8068] rounded-full flex items-center justify-center text-sm shrink-0 shadow';
+      userAvatar.textContent = '👤';
+
+      userMsgDiv.appendChild(userBubble);
+      userMsgDiv.appendChild(userAvatar);
+      chatContainer.appendChild(userMsgDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      // Indicador de "Ouvindo seu áudio..."
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'flex items-end gap-2';
+      typingDiv.id = 'typing-indicator';
+      typingDiv.innerHTML = `
+        <div class="w-8 h-8 bg-[#0ea5e9] rounded-full flex items-center justify-center text-sm shrink-0 shadow">🤖</div>
+        <div class="max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm italic">Ouvindo seu áudio...</div>
+      `;
+      chatContainer.appendChild(typingDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      setTimeout(() => {
+        const indicator = document.getElementById('typing-indicator');
+        if (indicator) indicator.remove();
+
+        const respostaBot = "Recebi sua mensagem de áudio! Para uma triagem automática imediata aqui no protótipo, você também pode escrever ou ditar os sintomas principais (ex: febre, dor de cabeça ou falta de ar).";
+
+        appendBotMessage(respostaBot);
+      }, 900);
+    }
+
+    // ================= 4. CHATBOT DE TEXTO INTEGRADO ================= //
     async function sendChat() {
       const inputChat = document.getElementById('userInputChat');
       const sendChatBtn = document.getElementById('sendChatBtn');
       const micChatBtn = document.getElementById('micChatBtn');
+      const recordAudioBtn = document.getElementById('recordAudioBtn');
       const text = inputChat.value.trim();
       if (!text) return;
 
-      // 1. Trava os controles enquanto o bot responde
+      // Trava os controles enquanto o bot processa
       inputChat.disabled = true;
       sendChatBtn.disabled = true;
       micChatBtn.disabled = true;
+      recordAudioBtn.disabled = true;
 
       const chatContainer = document.getElementById('chatMessages');
 
@@ -542,7 +649,7 @@
       inputChat.value = '';
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
-      // 2. Indicador de "Digitando..."
+      // Indicador de "Digitando..."
       const typingDiv = document.createElement('div');
       typingDiv.className = 'flex items-end gap-2';
       typingDiv.id = 'typing-indicator';
@@ -553,7 +660,7 @@
       chatContainer.appendChild(typingDiv);
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
-      // Classificação local
+      // Classificação por palavras-chave
       const textoLower = text.toLowerCase();
       let classificacao = "";
 
@@ -573,50 +680,56 @@
 
       const respostaBot = `Entendi. Seu sintoma se configura na classificação: ${classificacao}.`;
 
-      // 3. Exibe a resposta do bot com o ícone de alto-falante
       setTimeout(() => {
         const indicator = document.getElementById('typing-indicator');
         if (indicator) indicator.remove();
 
-        const botMsgDiv = document.createElement('div');
-        botMsgDiv.className = 'flex items-end gap-2';
-        
-        const botBubble = document.createElement('div');
-        botBubble.className = 'max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm flex flex-col gap-1';
-
-        const textSpan = document.createElement('span');
-        textSpan.textContent = respostaBot;
-
-        // Botão de alto-falante no canto inferior direito do balão
-        const audioBtn = document.createElement('button');
-        audioBtn.className = 'self-end text-[#0d3c61]/70 hover:text-[#0d3c61] cursor-pointer pt-0.5';
-        audioBtn.title = 'Ouvir mensagem';
-        audioBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
-        audioBtn.onclick = () => speakText(respostaBot);
-
-        botBubble.appendChild(textSpan);
-        botBubble.appendChild(audioBtn);
-
-        const botAvatar = document.createElement('div');
-        botAvatar.className = 'w-8 h-8 bg-[#0ea5e9] rounded-full flex items-center justify-center text-sm shrink-0 shadow';
-        botAvatar.textContent = '🤖';
-
-        botMsgDiv.appendChild(botAvatar);
-        botMsgDiv.appendChild(botBubble);
-        chatContainer.appendChild(botMsgDiv);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-
-        // Renderiza o novo ícone do Lucide adicionado dinamicamente
-        lucide.createIcons();
+        appendBotMessage(respostaBot);
 
         // Reativa os controles
         inputChat.disabled = false;
         sendChatBtn.disabled = false;
         micChatBtn.disabled = false;
+        recordAudioBtn.disabled = false;
         inputChat.focus();
       }, 800);
     }
 
+    // Função auxiliar para renderizar mensagens do SaúdeBot com botão de áudio
+    function appendBotMessage(respostaBot) {
+      const chatContainer = document.getElementById('chatMessages');
+
+      const botMsgDiv = document.createElement('div');
+      botMsgDiv.className = 'flex items-end gap-2';
+      
+      const botBubble = document.createElement('div');
+      botBubble.className = 'max-w-[75%] bg-[#bce0fd] text-[#0d3c61] p-3 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm flex flex-col gap-1';
+
+      const textSpan = document.createElement('span');
+      textSpan.textContent = respostaBot;
+
+      const audioBtn = document.createElement('button');
+      audioBtn.className = 'self-end text-[#0d3c61]/70 hover:text-[#0d3c61] cursor-pointer pt-0.5';
+      audioBtn.title = 'Ouvir mensagem';
+      audioBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
+      audioBtn.onclick = () => speakText(respostaBot);
+
+      botBubble.appendChild(textSpan);
+      botBubble.appendChild(audioBtn);
+
+      const botAvatar = document.createElement('div');
+      botAvatar.className = 'w-8 h-8 bg-[#0ea5e9] rounded-full flex items-center justify-center text-sm shrink-0 shadow';
+      botAvatar.textContent = '🤖';
+
+      botMsgDiv.appendChild(botAvatar);
+      botMsgDiv.appendChild(botBubble);
+      chatContainer.appendChild(botMsgDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      lucide.createIcons();
+    }
+
+    // Enviar mensagem ao pressionar Enter
     document.getElementById('userInputChat').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         sendChat();
